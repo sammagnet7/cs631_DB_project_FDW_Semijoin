@@ -1,7 +1,7 @@
 1. From project list doc:
 Read up on semijoin optimization in distributed databases from Chapter 22 slides.  Then figure out how to use existing foreign relations support in PostgreSQL to implement semijoins.
  
-2. mail on 15 oct 2024
+2. mail received on 15 oct 2024
 Before you start hacking on PostgreSQL you should refresh your internals knowledge by reading Section 8 of Chapter 32 of DB Concepts 7th ed (also Section 7 for foreign data wrappers). The chapter is available at https://www.db-book.com/online-chapters-dir/32.pdf.
 
 Summery:

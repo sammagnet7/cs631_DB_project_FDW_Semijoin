@@ -1,0 +1,184 @@
+----------------------------
+First time build and setup
+----------------------------
+
+1) Set the following variables appropriately:
+
+  export POSTGRES_INSTALLDIR=<path to install dir>
+  export POSTGRES_SRCDIR=<path to postgre source dir>
+
+  cd ${POSTGRES_SRCDIR}
+
+NOTE 1: source dir is the main directory where you your postgresql source 
+resides.  installdir is the directory where you want the database to 
+be created.  One option is to make INSTALLDIR to be SRCDIR/install.)
+
+NOTE 2:  Add all the export lines in this file to a file called, say, bashrc, 
+so you can source that file in future before running any postgresql commands.
+
+
+2) You should configure for debugging as follows:
+
+i. First edit configure and replace -O2 in CFlags by -O0  in all occurrences
+except BITCODE_CFLAGS (there are about 6 places). 
+
+
+ii. Then run the following:
+
+  ./configure --prefix=${POSTGRES_INSTALLDIR} --enable-debug
+  export enable_debug=yes
+
+NOTE: If you change the configuration (e.g. O2 above) after running
+configure, do a 
+    make distclean
+and then run configure again as above.
+
+(If you are setting up posgtresql for production use, do the configure as below:
+Normal build (Non-debug build):
+    ./configure --prefix=${POSTGRES_INSTALLDIR}
+but this will affect your ability to debug your code)
+
+See the file 'INSTALL' for more options of configure.
+
+
+3) Run
+   make | tee gmake.out
+
+ In case the make fails due to missing libraries, make sure they are installed 
+ using your Ubuntu software center or synaptic package manager (or equivalent).
+  Some of the packages that are often missing and needed are:
+     libreadline6-dev
+     zlib1g-dev
+     bison
+     flex
+
+4) Run
+   make install | tee gmake_install.out
+
+5) Set the following env. variables appropriately (as shown below):
+  export LD_LIBRARY_PATH=${POSTGRES_INSTALLDIR}/lib:${LD_LIBRARY_PATH}
+  export PATH=${POSTGRES_INSTALLDIR}/bin:${PATH}
+
+  export PGDATA=${POSTGRES_INSTALLDIR}/data
+
+6) create a new PostgreSQL database cluster:
+   The command initdb below is in the install/bin diretory
+  initdb -D ${PGDATA}
+
+Note: A database cluster is a collection of databases that are managed by a single server instance.
+
+7) Run the postgres server:
+   The command pg_ctl below is in the install/bin diretory
+
+pg_ctl -D $PGDATA -l logfile start
+
+(you can also use:   postmaster -D  $PGDATA > logfile 2>&1 &)
+
+NOTE 1: If you are running on a shared machine, you may need to change the port on which
+postgresql listens from the defaulty of 5432 to some other port.  Otherwise there will
+be a port clash.  To avoid this, Edit ${POSTGRES_INSTALLDIR}/data/postgresql.conf
+uncomment port=5432, and change it to (say) 9432.
+You will to connect to the port number
+you choose.
+
+NOTE 2: If you intend to connect from a machine other than the one you are running on,
+you will have to edit postgresql.conf and pg_hba.conf.  Instructions will
+be added here later.
+
+
+8) Create database: (we assume here that you used post number as 9432 above)
+   The command createdb below is in the install/bin diretory
+    createdb -p 9432 test
+
+9) Run the psql (client program):
+   The command psql below is in the install/bin diretory
+    psql -p 9432 test
+
+10) Stop the server:
+   The command pg_ctl below is in the install/bin diretory
+  pg_ctl stop
+
+11) To run postgresql in single user mode (very useful for debugging when you modify the sources),
+run it as
+    postgres --single -D ${PGDATA} test
+(where test is the database you created).
+
+To run postgresql in single mode from eclipse,
+add
+  --single -D <PGDATA> test
+  
+as command line arguments in the run time environment
+(change <PGDATA> to the full path) allowing you to use the eclipse
+debugger.
+
+  You can now run sql commands.  Eg.
+
+     create table foo(i int);
+     insert into foo values (1);
+     select * from foo;
+
+
+
+----------------------------
+When you modify the sources:
+----------------------------
+
+Most of your testing will be in single mode, from eclipse, so sources should
+get rebuilt and the process restarted automatically.  If you are running
+from command line in server mode, do the following.
+
+1) Exit from psql client
+
+2) Stop the postgres server:
+  pg_ctl stop
+
+3) Rebuild the objects:
+  gmake | tee gmake.out
+
+4) Re-install:
+  gmake install | tee gmake_install.out
+
+5) Start the postgres server
+  postmaster -D  $PGDATA > logfile 2>&1 &
+	OR
+  pg_ctl -D $PGDATA -l logfile start
+	
+6) psql -p <portnumber> test
+
+---------------------------------------
+Connecting to a remote postgres server:
+---------------------------------------
+*. psql client should be invoked in the following manner, if the postgres server is running on a different machine. 
+psql -h <hostname on which postgres server runs> -p <portnumber> test
+
+-------------------------------------
+Executing a query from command line:
+-------------------------------------
+psql -p <portnumber> test --command "<query>"
+	e.g: psql test --command "select * from ch_user;"
+
+
+-------------------------------------
+Running a stand alone postgres
+-------------------------------------
+postgres  -D  $PGDATA test
+
+
+
+-------------------------------------
+Attaching a stand alone postgres to debugger 
+-------------------------------------
+This part is if you are using ddd/gdb.
+Note: Source level debugging needs building the postgres with debug options
+enabled. See the step 2 (Debug build) of the 'First time build and setup'
+
+1) Invoke ddd 
+
+2) Enter the following 'GDB console' window:
+
+	 i) file <full path of 'postgres'>
+			e.g: file /home/santosh/postgresql/bin/postgres
+	ii) run  <command line arguments>
+			e.g: run -D $PGDATA test
+
+
