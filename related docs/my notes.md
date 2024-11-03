@@ -41,81 +41,83 @@ The semijoin strategy can be extended to a series of semijoin steps.
 
 ---
 
-## Project setup
+## Project Setup
 
-> Postgres Codebase: `git clone -b REL_16_STABLE https://git.postgresql.org/git/postgresql.git`
->version: REL_16_STABLE
+> **Postgres Codebase**: `git clone -b REL_16_STABLE https://git.postgresql.org/git/postgresql.git`
+> **Version**: REL_16_STABLE
 
-### Setting up Foreign Data Wrapper
+### Setting Up Foreign Data Wrapper
 
-1. Start postgres server: `${POSTGRES_INSTALLDIR}/bin/postgres -D ${PGDATA}`
-2. Create 2 DBs:
-`${POSTGRES_INSTALLDIR}/bin/createdb -p 5432 localdb`
-`${POSTGRES_INSTALLDIR}/bin/createdb -p 5432 foreigndb`
+1. Start PostgreSQL server:  
+   `${POSTGRES_INSTALLDIR}/bin/postgres -D ${PGDATA} -p 5432`
+   `${POSTGRES_INSTALLDIR}/bin/postgres -D ${PGDATA_FD} -p 5433`
+   
+2. Create 2 databases:  
+   `${POSTGRES_INSTALLDIR}/bin/createdb -p 5432 localdb`  
+   `${POSTGRES_INSTALLDIR}/bin/createdb -p 5433 foreigndb`
 
-3. Login to foreigndb: `${POSTGRES_INSTALLDIR}/bin/psql -h /tmp -d foreigndb -U soumik -p 5432`
+3. Login to foreigndb:  
+   `${POSTGRES_INSTALLDIR}/bin/psql -h /tmp -d foreigndb -U soumik -p 5433`
 
-```sql
-create table takes(
-    ID varchar(5), 
-    course_id varchar(8),
-    sec_id varchar(8), 
-    semester varchar(6),
-    year numeric(4,0),
-    grade varchar(2),
-    primary key (ID, course_id, sec_id, semester, year)
-);
+   ```sql
+   CREATE TABLE takes (
+       ID VARCHAR(5), 
+       course_id VARCHAR(8),
+       sec_id VARCHAR(8), 
+       semester VARCHAR(6),
+       year NUMERIC(4, 0),
+       grade VARCHAR(2),
+       PRIMARY KEY (ID, course_id, sec_id, semester, year)
+   );
 
-insert into takes values('65901', '401', '1', 'Fall', 2003, 'C-');
-insert into takes values('24932', '802', '1', 'Spring', 2003, 'B-');
-...
-insert into takes values('89132', '875', '1', 'Spring', 2005, 'C ');
+   INSERT INTO takes VALUES ('65901', '401', '1', 'Fall', 2003, 'C-');
+   INSERT INTO takes VALUES ('24932', '802', '1', 'Spring', 2003, 'B-');
+   -- Additional insert statements...
+   INSERT INTO takes VALUES ('89132', '875', '1', 'Spring', 2005, 'C ');
+   ```
 
-```
+4. Modify ACL in pg_hba.conf as needed.
 
-5. Modify ACL in pg_hba.conf:
-6. cd {POSTGRES_SRCDIR}/contrib/postgres_fdw
+5. Install postgres_fdw extension:
+   ```bash
+   cd {POSTGRES_SRCDIR}/contrib/postgres_fdw
    make
-make install
+   make install
+   ```
 
-Login to localdb: `${POSTGRES_INSTALLDIR}/bin/psql -h /tmp -d localdb -U soumik -p 5432`
+6. Login to localdb:  
+   `${POSTGRES_INSTALLDIR}/bin/psql -h /tmp -d localdb -U soumik -p 5432`
 
-```sql
-create table course(
-    course_id varchar(8), 
-    title varchar(50), 
-    dept_name varchar(20),
-    credits numeric(2,0) check (credits > 0),
-    primary key (course_id)
-);
+   ```sql
+   CREATE TABLE course (
+       course_id VARCHAR(8), 
+       title VARCHAR(50), 
+       dept_name VARCHAR(20),
+       credits NUMERIC(2, 0) CHECK (credits > 0),
+       PRIMARY KEY (course_id)
+   );
 
-insert into course values('787', 'C  Programming', 'Mech. Eng.', 4);
-insert into course values('238', 'The Music of Donovan', 'Mech. Eng.', 3);
-...
-insert into course values('780', 'Geology', 'Psychology', 3);
+   INSERT INTO course VALUES ('787', 'C  Programming', 'Mech. Eng.', 4);
+   INSERT INTO course VALUES ('238', 'The Music of Donovan', 'Mech. Eng.', 3);
+   -- Additional insert statements...
+   INSERT INTO course VALUES ('780', 'Geology', 'Psychology', 3);
 
+   CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 
-CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+   CREATE SERVER fdw_server FOREIGN DATA WRAPPER postgres_fdw
+   OPTIONS (dbname 'foreigndb', host '127.0.0.1', port '5433');
 
-CREATE SERVER fdw_server FOREIGN DATA WRAPPER postgres_fdw
- OPTIONS (dbname 'foreigndb', host '127.0.0.1', port '5433');
+   CREATE USER MAPPING FOR soumik SERVER fdw_server OPTIONS (user 'soumik');
 
-CREATE USER MAPPING FOR soumik SERVER fdw_server OPTIONS (user 'soumik');
+   GRANT USAGE ON FOREIGN SERVER fdw_server TO soumik;
 
-GRANT USAGE ON FOREIGN SERVER fdw_server TO soumik;
+   IMPORT FOREIGN SCHEMA "public" LIMIT TO (takes) FROM SERVER fdw_server INTO public;
 
-IMPORT FOREIGN SCHEMA "public" limit to (takes) FROM SERVER fdw_server INTO public;
+   -- Run test join query
+   EXPLAIN ANALYZE
+   SELECT COUNT(*)
+   FROM course c
+   WHERE EXISTS (SELECT * FROM takes t WHERE t.course_id = c.course_id);
+   ```
 
--- Run test join query
-EXPLAIN ANALYZE
-SELECT COUNT(*)
-FROM course c
-WHERE EXISTS (SELECT * FROM takes t WHERE t.course_id = c.course_id);
-
-```
-
-> Ref: https://towardsdatascience.com/how-to-set-up-a-foreign-data-wrapper-in-postgresql-ebec152827f3
-
-
-7. 
-
+> **Reference**: [Towards Data Science Guide on Setting up Foreign Data Wrapper in PostgreSQL](https://towardsdatascience.com/how-to-set-up-a-foreign-data-wrapper-in-postgresql-ebec152827f3)

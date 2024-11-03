@@ -34,4 +34,4 @@ make install | tee gmake_install.out
 # After code change ti run and test postgres server:
 ## ${POSTGRES_INSTALLDIR}/bin/postgres -D ${PGDATA}				# Runs the server
 ## ${POSTGRES_INSTALLDIR}/bin/psql -h /tmp -d localdb -U soumik -p 5432		# Connects to the DB at server 
-## ${POSTGRES_INSTALLDIR}/bin/psql -h /tmp -d foreigndb -U soumik -p 5432	# Connects to the DB at server
+## ${POSTGRES_INSTALLDIR}/bin/psql -h /tmp -d foreigndb -U soumik -p 5433	# Connects to the DB at server
