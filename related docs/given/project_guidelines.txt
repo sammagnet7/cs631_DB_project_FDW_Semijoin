@@ -11,5 +11,6 @@ A. Chapter 22 : a. semijoin optimization in distributed databases
 		
 B. Chapter 32 : a. db internals (Section 8);  
 		b. foreign data wrappers(Section 7)
-C. 
 
+--
+Postgres Debugging guide: https://drive.google.com/file/d/1a6afDF9zwnfz2D4_OVfuhKQ-SoM3N6Qf/view

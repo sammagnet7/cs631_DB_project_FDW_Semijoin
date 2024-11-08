@@ -2,6 +2,7 @@
 
 #---step1---
 install_path='/home/soumik/SOUMIKD/IITB/Class_notes/sem_3/CS_631_RDBMS/Assignments/Final_project/postgres_codebase'
+
 export POSTGRES_SRCDIR="${install_path}/postgresql"
 export POSTGRES_INSTALLDIR="${POSTGRES_SRCDIR}/install"
 export LD_LIBRARY_PATH=${POSTGRES_INSTALLDIR}/lib:${LD_LIBRARY_PATH}
