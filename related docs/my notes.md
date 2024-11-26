@@ -94,13 +94,14 @@ The semijoin strategy can be extended to a series of semijoin steps.
        title VARCHAR(50), 
        dept_name VARCHAR(20),
        credits NUMERIC(2, 0) CHECK (credits > 0),
+       year numeric(4,0),
        PRIMARY KEY (course_id)
    );
 
-   INSERT INTO course VALUES ('787', 'C  Programming', 'Mech. Eng.', 4);
-   INSERT INTO course VALUES ('238', 'The Music of Donovan', 'Mech. Eng.', 3);
+   INSERT INTO course VALUES ('787', 'C  Programming', 'Mech. Eng.', 4, 2001);
+   INSERT INTO course VALUES ('238', 'The Music of Donovan', 'Mech. Eng.', 3, 2002);
    -- Additional insert statements...
-   INSERT INTO course VALUES ('780', 'Geology', 'Psychology', 3);
+   INSERT INTO course VALUES ('780', 'Geology', 'Psychology', 3, 2003);
 
    CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 

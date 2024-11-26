@@ -9,6 +9,13 @@ export LD_LIBRARY_PATH=${POSTGRES_INSTALLDIR}/lib:${LD_LIBRARY_PATH}
 export PATH=${POSTGRES_INSTALLDIR}/bin:${PATH}
 export PGDATA=${POSTGRES_INSTALLDIR}/data
 export PGDATA_FD=${POSTGRES_INSTALLDIR}/data_fd
+export POSTGRES_CONTRIBDIR="${POSTGRES_SRCDIR}/contrib"
+
+# Extras: Building contrib directory
+cd ${POSTGRES_CONTRIBDIR}
+make clean
+make
+make install
 
 #--step2--
 # Stop the postgres server:
