@@ -122,3 +122,28 @@ The semijoin strategy can be extended to a series of semijoin steps.
    ```
 
 > **Reference**: [Towards Data Science Guide on Setting up Foreign Data Wrapper in PostgreSQL](https://towardsdatascience.com/how-to-set-up-a-foreign-data-wrapper-in-postgresql-ebec152827f3)
+
+7. Launch.json to setup vscode:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) Launch Single",
+            "type": "lldb",
+            "request": "launch",
+            "program": "/home/soumik/SOUMIKD/IITB/Class_notes/sem_3/CS_631_RDBMS/Assignments/Final_project/postgres_codebase/postgresql/install/bin/postgres",
+            "args": ["--single", "localdb"],
+            "cwd": "/home/soumik/SOUMIKD/IITB/Class_notes/sem_3/CS_631_RDBMS/Assignments/Final_project/postgres_codebase/postgresql",
+            "env": {
+                "PGDATA": "/home/soumik/SOUMIKD/IITB/Class_notes/sem_3/CS_631_RDBMS/Assignments/Final_project/postgres_codebase/postgresql/install/data"
+            },
+            "externalConsole": true,
+            "stopOnEntry": false
+        }
+    ]
+}
+```
+
+8. 
