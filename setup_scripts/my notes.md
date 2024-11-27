@@ -79,6 +79,7 @@ The semijoin strategy can be extended to a series of semijoin steps.
 4. Modify ACL in pg_hba.conf as needed.
 
 5. Install postgres_fdw extension:
+
    ```bash
    cd {POSTGRES_SRCDIR}/contrib/postgres_fdw
    make
