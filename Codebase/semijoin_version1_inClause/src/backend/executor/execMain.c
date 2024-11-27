@@ -321,9 +321,6 @@ standard_ExecutorRun(QueryDesc *queryDesc,
 	bool		sendTuples;
 	MemoryContext oldcontext;
 
-	//Completion_Status *query_status = NULL;  // Definition
-	//query_status = (Completion_Status *)malloc(sizeof(Completion_Status));
-
 	/* sanity checks */
 	Assert(queryDesc != NULL);
 
@@ -369,8 +366,7 @@ standard_ExecutorRun(QueryDesc *queryDesc,
 		queryDesc->already_executed = true;
 
 
-		//query_status->isdone = false;
-
+		
 		ExecutePlan(estate,
 					queryDesc->planstate,
 					queryDesc->plannedstmt->parallelModeNeeded,
@@ -398,8 +394,6 @@ standard_ExecutorRun(QueryDesc *queryDesc,
 		InstrStopNode(queryDesc->totaltime, estate->es_processed);
 
 	MemoryContextSwitchTo(oldcontext);
-
-	//query_status->isdone = true;
 
 }
 

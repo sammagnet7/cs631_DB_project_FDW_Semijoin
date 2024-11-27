@@ -62,12 +62,6 @@
 
 typedef uintptr_t Datum;
 
-//typedef struct completion_status
-//{ // global completion state of a query
-//	bool isdone;
-//} Completion_Status;
-
-//Completion_Status *query_status;
 /*
  * A NullableDatum is used in places where both a Datum and its nullness needs
  * to be stored. This can be more efficient than storing datums and nullness

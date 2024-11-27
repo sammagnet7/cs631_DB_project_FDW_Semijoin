@@ -216,7 +216,7 @@ ExecForeignScan(PlanState *pstate)
 
 	StringInfoData result;
 
-	if (pstate->lefttree) // If there is a child subtree, run only once for this query
+	if (pstate->lefttree && !node->child_materialised) // If there is a child subtree, run only once for this query
 
 	{
 		TupleTableSlot *slot;
@@ -227,7 +227,7 @@ ExecForeignScan(PlanState *pstate)
 
 		bool not_first_slot = false;
 
-		while (!local_scan_done) //&& !(query_status->isdone))
+		while (!local_scan_done)
 		{
 
 			slot = ExecProcNode(outerPlanState(pstate));
@@ -273,8 +273,8 @@ ExecForeignScan(PlanState *pstate)
 
 		*query_ptr = query.data;
 
-		//query_status->isdone = true; // set it such that for this block is not run anymore for this query
-
+		node->child_materialised = true; // set it such that for this block is not run anymore for this query
+		
 	}
 
 
@@ -324,6 +324,7 @@ ExecInitForeignScan(ForeignScan *node, EState *estate, int eflags)
 	scanstate = makeNode(ForeignScanState);
 	scanstate->ss.ps.plan = (Plan *) node;
 	scanstate->ss.ps.state = estate;
+	scanstate->child_materialised = false;
 	scanstate->ss.ps.ExecProcNode = ExecForeignScan;
 
 	/*
