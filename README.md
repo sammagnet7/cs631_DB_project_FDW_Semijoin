@@ -26,14 +26,14 @@ WHERE EXISTS (SELECT * FROM takes t WHERE t.year = c.year);
 ### Local Semijoin
 
 The **EXPLAIN** output for this query, when both relations are local, shows an optimized semijoin operation:  
-![Local Semijoin Plan](./svgs/explain_plan_local_semijoin.svg)
+![Local Semijoin Plan](./related%20docs/svgs/explain_plan_local_semijoin.svg)
 
 ### Foreign Relation Case
 
 However, when `r2` is on a foreign site, PostgreSQL retrieves the entire `r2` table to the local site and performs the join locally.  
 
 The **EXPLAIN** output illustrates this inefficiency:  
-![Foreign Relation Full Scan Plan](./svgs/explain_plan_foreign_fullScan.svg)
+![Foreign Relation Full Scan Plan](./related%20docs/svgs/explain_plan_foreign_fullScan.svg)
 
 This approach is suboptimal when the join condition matches only a small subset of rows. For example, in the query above:
 
@@ -109,7 +109,7 @@ To minimize the overhead of shipping `temp1`:
 - `{POSTGRES_SRCDIR}/src/include/postgres.h`
 - `{POSTGRES_SRCDIR}/src/include/nodes/execnodes.h`  
 
-**Branch**: `semijoin_version1_inClause`
+**Code folder**: `Codebase/semijoin_version1_inClause`
 
 ---
 
@@ -132,7 +132,7 @@ To minimize the overhead of shipping `temp1`:
 - `{POSTGRES_SRCDIR}/src/backend/executor/nodeForeignscan.c`
 - `{POSTGRES_SRCDIR}/src/backend/tcop/postgres.c`
 
-**Branch**: `semijoin_version2_bloomFilter`
+**Code folder**: `Codebase/semijoin_version2_bloomFilter`
 
 ---
 
@@ -141,7 +141,7 @@ To minimize the overhead of shipping `temp1`:
 ### Final EXPLAIN Output
 
 The modified approach significantly reduces network traffic by fetching only relevant tuples from the foreign site:  
-![Modified Plan](./svgs/explain_plan_modified.svg)
+![Modified Plan](./related%20docs/svgs/explain_plan_modified.svg)
 
 ---
 
