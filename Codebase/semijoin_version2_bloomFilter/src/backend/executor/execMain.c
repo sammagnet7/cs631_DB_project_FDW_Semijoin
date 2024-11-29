@@ -1621,6 +1621,31 @@ ExecCloseRangeTableRelations(EState *estate)
 	}
 }
 
+char *get_attr_val_from_slot(TupleTableSlot *slot)
+{
+	TupleDesc typeinfo = slot->tts_tupleDescriptor;
+	int natts = typeinfo->natts;
+	int i;
+	Datum attr;
+	char *value;
+	bool isnull;
+	Oid typoutput;
+	bool typisvarlena;
+
+	for (i = 0; i < natts; ++i)
+	{
+		attr = slot_getattr(slot, i + 1, &isnull);
+		if (isnull)
+			continue;
+		getTypeOutputInfo(TupleDescAttr(typeinfo, i)->atttypid,
+						  &typoutput, &typisvarlena);
+
+		value = OidOutputFunctionCall(typoutput, attr);
+		return value;
+	}
+	return NULL;
+}
+
 /* ----------------------------------------------------------------
  *		ExecutePlan
  *
@@ -1667,6 +1692,11 @@ ExecutePlan(EState *estate,
 	estate->es_use_parallel_mode = use_parallel_mode;
 	if (use_parallel_mode)
 		EnterParallelMode();
+	/* Decode the bloom filter if present */
+	if (dest->has_rcvd_filter)
+	{
+		dest->rcvd_filter = bloom_filter_decode_hex_with_metadata(dest->rcvd_filter_hex);
+	}
 
 	/*
 	 * Loop until we've processed the proper number of tuples from the plan.
@@ -1705,6 +1735,10 @@ ExecutePlan(EState *estate,
 		 */
 		if (sendTuples)
 		{
+			/* Check in the bloom filter */
+			char *value = get_attr_val_from_slot(slot);
+			if (dest->has_rcvd_filter && !bloom_filter_check(dest->rcvd_filter, value))
+				continue;
 			/*
 			 * If we are not able to send the tuple, we assume the destination
 			 * has closed and no more tuples can be sent. If that's the case,

@@ -105,7 +105,7 @@ ForeignRecheck(ForeignScanState *node, TupleTableSlot *slot)
 	return ExecQual(node->fdw_recheck_quals, econtext);
 }
 
-void appendSlotValuetoString(StringInfoData *result, TupleTableSlot *slot)
+void appendSlotValuetoString(StringInfoData *result, CustomBloomFilter *filter , TupleTableSlot *slot)
 {
 	TupleDesc typeinfo = slot->tts_tupleDescriptor;
 	int natts = typeinfo->natts;
@@ -156,6 +156,8 @@ void appendSlotValuetoString(StringInfoData *result, TupleTableSlot *slot)
 			break;
 		}
 		}
+		// Add to bloooom filter
+		bloom_filter_add(filter, value);
 	}
 }
 
@@ -201,104 +203,58 @@ NameData get_scan_attribute(ForeignScanState *node)
  * ----------------------------------------------------------------
  */
 static TupleTableSlot *
-
 ExecForeignScan(PlanState *pstate)
-
 {
-
 	ForeignScanState *node = castNode(ForeignScanState, pstate);
-
 	ForeignScan *plan = (ForeignScan *)node->ss.ps.plan;
-
 	EState *estate = node->ss.ps.state;
-
 	StringInfoData query;
-
 	StringInfoData result;
-
 	if (pstate->lefttree && !node->child_materialised) // If there is a child subtree, run only once for this query
-
 	{
+		CustomBloomFilter *filter = bloom_filter_create(15, 0.01);
 		TupleTableSlot *slot;
 
 		initStringInfo(&result);
-
 		bool local_scan_done = false;
-
 		bool not_first_slot = false;
-
 		while (!local_scan_done)
 		{
-
 			slot = ExecProcNode(outerPlanState(pstate));
-
-			if (TupIsNull(slot))
-
+			if (TupIsNull(slot)) // append slots while it is non null
 			{
 				local_scan_done = true;
-
 			}
 			else
-
 			{
 				if (not_first_slot)
-
 				{
 					appendStringInfoString(&result, ",");
 				}
-				appendSlotValuetoString(&result, slot);
-
+				appendSlotValuetoString(&result, filter, slot);
 				not_first_slot = true;
 			}
 		}
-
-		NameData attr_name = get_scan_attribute(node); // Get the join attribute name
-		char **query_ptr = (char **)((char *)node->fdw_state + 24); // Hacky way to index into a struct and change a member value
-
-		// Build the modified query string using WHERE IN clause and the unique attribute values scanned
-
+		NameData attr_name = get_scan_attribute(node);
+		char **query_ptr = (char **)((char *)node->fdw_state + 24);
 		initStringInfo(&query);
-
 		appendStringInfo(&query, *query_ptr);
-
-		appendStringInfo(&query, " WHERE ");
-
-		appendStringInfo(&query, attr_name.data);
-
-		appendStringInfo(&query, " IN (");
-
-		appendStringInfo(&query, result.data);
-
-		appendStringInfo(&query, ");");
-
+		appendStringInfo(&query, "#");
+		appendStringInfo(&query, bloom_filter_encode_hex_with_metadata(filter));
 		*query_ptr = query.data;
-
 		node->child_materialised = true; // set it such that for this block is not run anymore for this query
-		
 	}
 
-
-
 	/*
-
 	 * Ignore direct modifications when EvalPlanQual is active --- they are
-
 	 * irrelevant for EvalPlanQual rechecking
-
 	 */
-
 	if (estate->es_epq_active != NULL && plan->operation != CMD_SELECT)
-
 		return NULL;
 
-
-
 	return ExecScan(&node->ss,
-
 					(ExecScanAccessMtd)ForeignNext,
-
 					(ExecScanRecheckMtd)ForeignRecheck);
-
 }
 
 

@@ -47,6 +47,34 @@
 #include "utils/palloc.h"
 
 /* ----------------------------------------------------------------
+ *				Section 0:	Bloomfilter + support functions
+ * ----------------------------------------------------------------
+ */
+
+typedef struct {
+    uint8_t *bit_array;  // Array to hold the bits
+    size_t size;         // Size of the bit array in bits
+    int hash_count;      // Number of hash functions
+} CustomBloomFilter;
+/* MurmurHash3 implementation for simplicity */
+uint32_t murmurhash(const char *key, size_t len, uint32_t seed);
+/* Initialize the Bloom filter */
+CustomBloomFilter *bloom_filter_create(size_t n, double p);
+/* Add an item to the Bloom filter */
+void bloom_filter_add(CustomBloomFilter *filter, const char *item);
+/* Check if an item is in the Bloom filter */
+int bloom_filter_check(CustomBloomFilter *filter, const char *item);
+
+/* Encode Bloom filter to Hexadecimal */
+char *bloom_filter_encode_hex_with_metadata(CustomBloomFilter *filter);
+
+/* Decode Bloom filter from Hexadecimal */
+CustomBloomFilter *bloom_filter_decode_hex_with_metadata(const char *hex);
+
+/* Free the Bloom filter */
+void bloom_filter_free(CustomBloomFilter *filter);
+
+/* ----------------------------------------------------------------
  *				Section 1:	Datum type + support functions
  * ----------------------------------------------------------------
  */
