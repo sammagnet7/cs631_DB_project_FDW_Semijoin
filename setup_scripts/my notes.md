@@ -120,6 +120,11 @@ The semijoin strategy can be extended to a series of semijoin steps.
    SELECT COUNT(*)
    FROM course c
    WHERE EXISTS (SELECT * FROM takes t WHERE t.course_id = c.course_id);
+
+   EXPLAIN ANALYZE
+   SELECT COUNT(*)
+   FROM course c
+   WHERE EXISTS (SELECT * FROM takes t WHERE t.year = c.year);
    ```
 
 > **Reference**: [Towards Data Science Guide on Setting up Foreign Data Wrapper in PostgreSQL](https://towardsdatascience.com/how-to-set-up-a-foreign-data-wrapper-in-postgresql-ebec152827f3)

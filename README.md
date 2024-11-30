@@ -131,8 +131,14 @@ To minimize the overhead of shipping `temp1`:
 - `{POSTGRES_SRCDIR}/src/include/postgres.h`
 - `{POSTGRES_SRCDIR}/src/backend/executor/nodeForeignscan.c`
 - `{POSTGRES_SRCDIR}/src/backend/tcop/postgres.c`
+- `{POSTGRES_SRCDIR}/src/backend/tcop/pquery.c`
+- `{POSTGRES_SRCDIR}/src/include/tcop/dest.h`
+- `{POSTGRES_SRCDIR}/src/include/utils/portal.h`
+- `{POSTGRES_SRCDIR}/src/backend/utils/misc/Makefile`
 
 **Code folder**: `Codebase/semijoin_version2_bloomFilter`
+
+> Note: `POSTGRES_SRCDIR="/home/soumik/SOUMIKD/IITB/Class_notes/sem_3/CS_631_RDBMS/Assignments/Final_project/postgres_codebase/postgresql"`
 
 ---
 
